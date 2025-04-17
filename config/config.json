@@ -1,0 +1,5 @@
+{
+    "ServerAddress": "localhost:8080",
+	"DbURL": "postgres://postgres:pswrd@localhost:5432/avitointer",
+	"SecretWord": "this_is_my_secret_word"
+}
