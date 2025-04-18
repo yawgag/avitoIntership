@@ -25,13 +25,13 @@ func (h *PickupPointHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var reqData *models.PickupPoint
-	if err := json.NewDecoder(r.Body).Decode(&reqData); err != nil {
+	var pickupPoint *models.PickupPointAPI
+	if err := json.NewDecoder(r.Body).Decode(&pickupPoint); err != nil {
 		errorsHandl.SendJsonError(w, "Bad request", http.StatusUnauthorized)
 		return
 	}
 
-	pickupPoint, err := h.pickupPointService.Create(r.Context(), reqData)
+	pickupPoint, err := h.pickupPointService.Create(r.Context(), pickupPoint)
 	if err != nil {
 		errorsHandl.SendJsonError(w, "Bad request", http.StatusUnauthorized)
 		return
@@ -40,5 +40,6 @@ func (h *PickupPointHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(pickupPoint); err != nil {
 		fmt.Println("err: ", err)
+		//TODO: add json error
 	}
 }

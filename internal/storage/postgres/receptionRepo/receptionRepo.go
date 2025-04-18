@@ -3,7 +3,9 @@ package receptionRepo
 import (
 	"context"
 	"orderPickupPoint/internal/models"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -19,7 +21,7 @@ func NewReceptionRepo(pool *pgxpool.Pool) *ReceptionRepo {
 
 func (r *ReceptionRepo) GetStatusNameById(ctx context.Context, id int) (string, error) {
 	query := `select name 
-				from receptionStatus
+				from reception_statuses
 				where id = $1`
 
 	var name string
@@ -28,19 +30,84 @@ func (r *ReceptionRepo) GetStatusNameById(ctx context.Context, id int) (string, 
 	return name, err
 }
 
-func (r *ReceptionRepo) CreateReception(ctx context.Context, pvzId int) (*models.Reception, error) {
-	query := `insert into reception(pvzId)
+func (r *ReceptionRepo) GetProductTypeIdByName(ctx context.Context, name string) (int, error) {
+	query := `select id
+				from product_types
+				where name = $1`
+
+	var id int
+	err := r.pool.QueryRow(ctx, query, name).Scan(&id)
+	if err != nil {
+		return -1, err
+	}
+
+	return id, nil
+}
+
+func (r *ReceptionRepo) CreateReception(ctx context.Context, pvzId uuid.UUID) (*models.Reception, error) {
+	query := `insert into receptions(pvz_id)
 				select $1
 				where not exists(
 					select 1
-					from reception
-					where pvzid = $1 and receptionStatus = 1)
-				returning id, receptionStartDateTime, pvzid, statusId`
+					from receptions
+					where pvz_id = $1 and status_id = 1)
+				returning id, reception_start_datetime, pvz_id, status_id`
 
 	outReception := &models.Reception{}
-	err := r.pool.QueryRow(ctx, query, pvzId).Scan(&outReception.Id, &outReception.DateTime, &outReception.PickupPointId, &outReception.Status)
+	err := r.pool.QueryRow(ctx, query, pvzId).Scan(&outReception.Id, &outReception.DateTime, &outReception.PickupPointId, &outReception.StatusId)
 	if err != nil {
 		return nil, err
 	}
+	return outReception, nil
+}
+
+func (r *ReceptionRepo) AddProductToReception(ctx context.Context, product *models.Product, pvzId uuid.UUID) (*models.Product, error) {
+	queryOpenReception := `select id
+							from receptions
+							where pvz_id = $1 and status_id = 1`
+
+	queryAddProduct := `insert into products(type_id)
+						values ($1)
+						returning id, added_at`
+
+	query_reception_product := `insert into reception_products(reception_id, product_id)
+								values($1, $2)`
+
+	var (
+		receptionId uuid.UUID
+		productId   uuid.UUID
+		addedAt     time.Time
+	)
+
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	err = tx.QueryRow(ctx, queryOpenReception, pvzId).Scan(&receptionId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.QueryRow(ctx, queryAddProduct, product.TypeId).Scan(&productId, &addedAt)
+	if err != nil {
+		return nil, err
+	}
+	_, err = tx.Exec(ctx, query_reception_product, receptionId, productId)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit(ctx)
+
+	outReception := &models.Product{
+		Id:          productId,
+		AddedAt:     addedAt,
+		TypeId:      product.TypeId,
+		ReceptionId: receptionId,
+	}
+
 	return outReception, nil
 }

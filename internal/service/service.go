@@ -8,12 +8,14 @@ import (
 	"orderPickupPoint/internal/service/pickupPointService"
 	"orderPickupPoint/internal/service/receptionService"
 	"orderPickupPoint/internal/storage"
+
+	"github.com/google/uuid"
 )
 
 type PickupPoint interface {
 	// Create(ctx context.Context, data *models.PickupPoint) error
 	// ??? GetAllInfo
-	Create(ctx context.Context, pickupPoint *models.PickupPoint) (*models.PickupPoint, error)
+	Create(ctx context.Context, pickupPoint *models.PickupPointAPI) (*models.PickupPointAPI, error)
 }
 
 type Reception interface {
@@ -21,7 +23,8 @@ type Reception interface {
 	// AddProduct(ctx context.Context, ...) error
 	// DeleteProduct(ctx context.Context, ...) error
 	// Close(ctx context.Context, ...) error
-	CreateReception(ctx context.Context, pvzId int) (*models.Reception, error)
+	CreateReception(ctx context.Context, pvzId uuid.UUID) (*models.ReceptionAPI, error)
+	AddProduct(ctx context.Context, productAPI *models.ProductAPI) (*models.ProductAPI, error)
 }
 
 type Auth interface {

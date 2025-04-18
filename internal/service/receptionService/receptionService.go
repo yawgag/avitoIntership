@@ -4,6 +4,8 @@ import (
 	"context"
 	"orderPickupPoint/internal/models"
 	"orderPickupPoint/internal/storage"
+
+	"github.com/google/uuid"
 )
 
 type ReceptionService struct {
@@ -16,9 +18,46 @@ func NewReceptionService(receptionRepo storage.Reception) *ReceptionService {
 	}
 }
 
-func (s *ReceptionService) CreateReception(ctx context.Context, pvzId int) (*models.Reception, error) {
-	// outReception, err := s.ReceptionRepo.CreateReception(ctx, pvzId)
+func (s *ReceptionService) CreateReception(ctx context.Context, pvzId uuid.UUID) (*models.ReceptionAPI, error) {
+	reception, err := s.ReceptionRepo.CreateReception(ctx, pvzId)
+	if err != nil {
+		return nil, err
+	}
 
-	// statusName, err := s.ReceptionRepo.GetStatusNameById(ctx, outReception.Status)
-	return nil, nil
+	statusName, err := s.ReceptionRepo.GetStatusNameById(ctx, reception.StatusId)
+	if err != nil {
+		return nil, err
+	}
+	outReception := &models.ReceptionAPI{
+		Id:            reception.Id,
+		DateTime:      reception.DateTime,
+		PickupPointId: reception.PickupPointId,
+		Status:        statusName,
+	}
+	return outReception, nil
+}
+
+func (s *ReceptionService) AddProduct(ctx context.Context, productAPI *models.ProductAPI) (*models.ProductAPI, error) {
+	typeId, err := s.ReceptionRepo.GetProductTypeIdByName(ctx, productAPI.Type)
+	if err != nil {
+		return nil, err
+	}
+	product := &models.Product{
+		Id:      productAPI.Id,
+		AddedAt: productAPI.AddedAt,
+		TypeId:  typeId,
+	}
+
+	product, err = s.ReceptionRepo.AddProductToReception(ctx, product, *productAPI.PvzId)
+	if err != nil {
+		return nil, err
+	}
+
+	productAPI = &models.ProductAPI{
+		Id:          product.Id,
+		AddedAt:     product.AddedAt,
+		Type:        productAPI.Type,
+		ReceptionId: product.ReceptionId,
+	}
+	return productAPI, nil
 }

@@ -2,23 +2,47 @@ package models
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Reception struct {
-	Id            int       `json:"id"`
+	Id            uuid.UUID
+	DateTime      time.Time
+	PickupPointId uuid.UUID
+	StatusId      int
+}
+
+type ReceptionAPI struct {
+	Id            uuid.UUID `json:"id"`
 	DateTime      time.Time `json:"dateTime"`
-	PickupPointId int       `json:"pvzId"`
-	Status        int       `json:"status"`
+	PickupPointId uuid.UUID `json:"pvzId"`
+	Status        string    `json:"status"`
+}
+
+type ProductAPI struct {
+	Id          uuid.UUID  `json:"id"`
+	AddedAt     time.Time  `json:"dateTime"`
+	Type        string     `json:"type"`
+	PvzId       *uuid.UUID `json:"pvzId,omitempty"`
+	ReceptionId uuid.UUID  `json:"receptionId"`
 }
 
 type Product struct {
-	Id      int       `json:"id"`
-	AddedAt time.Time `json:"addedAt"`
-	Type    string    `json:"type"`
+	Id          uuid.UUID
+	AddedAt     time.Time
+	TypeId      int
+	ReceptionId uuid.UUID
 }
 
 type PickupPoint struct {
-	Id      int       `json:"id"`
+	Id      uuid.UUID
+	RegDate time.Time
+	CityId  int
+}
+
+type PickupPointAPI struct {
+	Id      uuid.UUID `json:"id"`
 	RegDate time.Time `json:"registrationDate"`
 	City    string    `json:"city"`
 }

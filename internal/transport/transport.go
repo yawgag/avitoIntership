@@ -28,15 +28,18 @@ func (h *Handler) InitRouter() *mux.Router {
 
 	modOnly := []string{"moderator"}
 	router.Handle("/", authHandler.IsAvaliableRoleMiddleware(authHandler.IsSignedInMiddleware(receptionHandler.IsWorking), modOnly))
+	// router.Handle()
 
 	router.HandleFunc("/dummyLogin", authHandler.DummyLogin).Methods("POST")
 	router.HandleFunc("/register", authHandler.Register).Methods("POST")
 	router.HandleFunc("/login", authHandler.Login).Methods("POST")
 
-	// router.HandleFunc("/pvz", authHandler.IsSignedInMiddleware(authHandler.IsAvaliableRoleMiddleware(pupHandler.Create, modOnly))).Methods("POST")
 	router.HandleFunc("/pvz", authHandler.IsAvaliableRoleMiddleware(authHandler.IsSignedInMiddleware(pupHandler.Create), modOnly)).Methods("POST")
 
-	//router.HandleFunc("/receptions", ).Methods("POST")
+	modAndEmpOnly := []string{"moderator", "employee"}
+	router.Handle("/receptions", authHandler.IsAvaliableRoleMiddleware(authHandler.IsSignedInMiddleware(receptionHandler.CreateReception), modAndEmpOnly)).Methods("POST")
+	router.Handle("/products", authHandler.IsAvaliableRoleMiddleware(authHandler.IsSignedInMiddleware(receptionHandler.AddProduct), modAndEmpOnly)).Methods("POST")
+	router.HandleFunc("/pvz/{pvzId}/delete_last_product", authHandler.IsAvaliableRoleMiddleware(authHandler.IsSignedInMiddleware(pupHandler.Create), modOnly)).Methods("POST")
 
 	return router
 }

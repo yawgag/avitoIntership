@@ -7,6 +7,9 @@ import (
 	"orderPickupPoint/internal/models"
 	"orderPickupPoint/internal/service"
 	"orderPickupPoint/internal/utils/errorsHandl"
+
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 type ReceptionHandler struct {
@@ -29,9 +32,56 @@ func (h *ReceptionHandler) CreateReception(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var reqData *models.Reception
-	if err := json.NewDecoder(r.Body).Decode(&reqData); err != nil {
+	var reception *models.ReceptionAPI
+	if err := json.NewDecoder(r.Body).Decode(&reception); err != nil {
 		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
 		return
 	}
+
+	reception, err := h.receptionService.CreateReception(r.Context(), reception.PickupPointId)
+	if err != nil {
+		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(reception); err != nil {
+		fmt.Println("err: ", err)
+	}
+
+}
+
+func (h *ReceptionHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("Content-Type") != "application/json" {
+		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	var productAPI *models.ProductAPI
+	if err := json.NewDecoder(r.Body).Decode(&productAPI); err != nil {
+		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	product, err := h.receptionService.AddProduct(r.Context(), productAPI)
+	if err != nil {
+		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(product); err != nil {
+		fmt.Println("err: ", err)
+	}
+}
+
+func (h *ReceptionHandler) DeleteLastProduct(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	pvzId, err := uuid.Parse(vars["pvzId"])
+	if err != nil {
+		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
+	}
+
 }
