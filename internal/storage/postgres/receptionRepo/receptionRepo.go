@@ -2,6 +2,7 @@ package receptionRepo
 
 import (
 	"context"
+	"fmt"
 	"orderPickupPoint/internal/models"
 	"time"
 
@@ -110,4 +111,60 @@ func (r *ReceptionRepo) AddProductToReception(ctx context.Context, product *mode
 	}
 
 	return outReception, nil
+}
+
+func (r *ReceptionRepo) DeleteLastProductInReception(ctx context.Context, pvzId uuid.UUID) error {
+	queryReceptionIsOpen := `select id
+							from receptions
+							where pvz_id = $1 and status_id = 1`
+
+	queryProductIndex := `select id
+							from reception_products rp
+							left join products p on p.id = rp.product_id
+							where reception_id = $1
+							order by p.added_at desc
+							limit 1`
+
+	queryDeleteProduct := `delete from products p
+							where id = $1`
+
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	var (
+		receptionId uuid.UUID
+		productId   uuid.UUID
+	)
+	err = tx.QueryRow(ctx, queryReceptionIsOpen, pvzId).Scan(&receptionId)
+	if err != nil {
+		return err
+	}
+
+	err = tx.QueryRow(ctx, queryProductIndex, receptionId).Scan(&productId)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, queryDeleteProduct, productId)
+	if err != nil {
+		return err
+	}
+
+	tx.Commit(ctx)
+
+	return nil
+}
+
+// TODO: why it's looking so sad? :-(
+func (r *ReceptionRepo) CloseReception(ctx context.Context, pvzId uuid.UUID) error {
+	query := `update receptions
+				set status_id = 2
+				where pvz_id = $1 and status_id = 1`
+	_, err := r.pool.Exec(ctx, query, pvzId)
+	fmt.Println(err)
+
+	return err
 }

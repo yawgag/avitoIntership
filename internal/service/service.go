@@ -13,18 +13,14 @@ import (
 )
 
 type PickupPoint interface {
-	// Create(ctx context.Context, data *models.PickupPoint) error
-	// ??? GetAllInfo
 	Create(ctx context.Context, pickupPoint *models.PickupPointAPI) (*models.PickupPointAPI, error)
 }
 
 type Reception interface {
-	// Create(ctx context.Context, ... ) error
-	// AddProduct(ctx context.Context, ...) error
-	// DeleteProduct(ctx context.Context, ...) error
-	// Close(ctx context.Context, ...) error
 	CreateReception(ctx context.Context, pvzId uuid.UUID) (*models.ReceptionAPI, error)
 	AddProduct(ctx context.Context, productAPI *models.ProductAPI) (*models.ProductAPI, error)
+	DeleteLastProductInReception(ctx context.Context, pvzId uuid.UUID) error
+	CloseReception(ctx context.Context, pvzId uuid.UUID) error
 }
 
 type Auth interface {

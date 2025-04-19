@@ -61,7 +61,9 @@ func (h *authHandler) DummyLogin(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 		Expires:  time.Now().Add(15 * time.Minute),
-		Path:     "/",
+		// TODO:(строка выше) продумать логику обработки токентов. Когда accessToken истекает,
+		// программа не использует refresh токен для создания нового. Просто увеличить время жизни куки мне не нравится
+		Path: "/",
 	})
 
 }
