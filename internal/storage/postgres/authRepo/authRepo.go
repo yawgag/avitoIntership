@@ -2,7 +2,6 @@ package authRepo
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"orderPickupPoint/internal/models"
@@ -45,16 +44,17 @@ func (r *authRepo) CreateSession(ctx context.Context, user *models.User, session
 
 func (r *authRepo) AddNewUser(ctx context.Context, user *models.User) error {
 	query := `insert into users(email, password, roleId)
-						values ($1, $2, $3)`
+						values ($1, $2, $3)
+						returning id`
 
 	roleId, err := r.GetRoleIdByName(ctx, user.Role)
 	if err != nil {
-		return errors.New("flag1#")
+		return err
 	}
 
-	_, err = r.pool.Exec(ctx, query, user.Email, user.PasswordHash, roleId)
+	err = r.pool.QueryRow(ctx, query, user.Email, user.PasswordHash, roleId).Scan(&user.Id)
 	if err != nil {
-		return errors.New("flag2#")
+		return err
 	}
 	return nil
 }

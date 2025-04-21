@@ -68,31 +68,34 @@ func (h *authHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	var reqData *models.User
 	if err := json.NewDecoder(r.Body).Decode(&reqData); err != nil {
-		errorsHandl.SendJsonError(w, "err1"+err.Error(), http.StatusBadRequest)
+		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
 		return
 	}
 	// some validation
-	if reqData.Email == "" || reqData.Password == "" || reqData.Role == "" {
+	if reqData.Email == "" || reqData.Password == nil || reqData.Role == "" {
 		errorsHandl.SendJsonError(w, "Bad request. Bad values", http.StatusBadRequest)
 		return
 	}
 
 	err := h.authService.Register(r.Context(), reqData)
 	if err != nil {
-		errorsHandl.SendJsonError(w, "err2"+err.Error(), http.StatusBadRequest)
+		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
 		return
 	}
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(reqData)
 }
 
 func (h *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("Content-Type") != "application/json" {
-		errorsHandl.SendJsonError(w, "Bad request", http.StatusUnauthorized)
+		errorsHandl.SendJsonError(w, "Wrong data", http.StatusUnauthorized)
 		return
 	}
 
 	var reqData *models.User
 	if err := json.NewDecoder(r.Body).Decode(&reqData); err != nil {
-		errorsHandl.SendJsonError(w, "Bad request", http.StatusUnauthorized)
+		errorsHandl.SendJsonError(w, "Wrong data", http.StatusUnauthorized)
 		return
 	}
 
@@ -116,7 +119,7 @@ func (h *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
-		Expires:  time.Now().Add(15 * time.Minute),
+		Expires:  time.Now().Add(30 * 24 * time.Hour),
 		Path:     "/",
 	})
 

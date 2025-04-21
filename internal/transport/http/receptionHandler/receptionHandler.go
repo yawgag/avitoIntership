@@ -70,7 +70,7 @@ func (h *ReceptionHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(product); err != nil {
 		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
 	}
@@ -87,7 +87,7 @@ func (h *ReceptionHandler) DeleteLastProduct(w http.ResponseWriter, r *http.Requ
 
 	err = h.receptionService.DeleteLastProductInReception(r.Context(), pvzId)
 	if err != nil {
-		errorsHandl.SendJsonError(w, "Unauthorized", http.StatusUnauthorized)
+		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
 		return
 	}
 }

@@ -53,7 +53,7 @@ func Run() {
 	fmt.Println("server started on", cfg.ServerAddress)
 
 	<-quit
-	fmt.Println("shutting down server...")
+	fmt.Println("shutting down server")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()

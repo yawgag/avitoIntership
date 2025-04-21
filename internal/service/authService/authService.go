@@ -93,13 +93,14 @@ func (s *AuthService) DummyLogin(ctx context.Context, user *models.User) (*model
 }
 
 func (s *AuthService) Register(ctx context.Context, user *models.User) error {
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(*user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
-	user.PasswordHash = string(passwordHash)
-
+	hashStr := string(passwordHash)
+	user.PasswordHash = &hashStr
 	err = s.authRepo.AddNewUser(ctx, user)
+	user.PasswordHash = nil
 	return err
 }
 
@@ -109,7 +110,7 @@ func (s *AuthService) Login(ctx context.Context, user *models.User) (*models.Aut
 		return nil, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(userFromDb.PasswordHash), []byte(user.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(*userFromDb.PasswordHash), []byte(*user.Password))
 	if err != nil {
 		return nil, err
 	}

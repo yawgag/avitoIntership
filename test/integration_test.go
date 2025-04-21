@@ -70,7 +70,7 @@ func TestPvzLogic(t *testing.T) {
 		t.Fatalf("failed to decode JSON response: %v, raw body: %s", err, string(body))
 	}
 
-	numberOfProducts := 10
+	numberOfProducts := 50
 	productTypes := []string{"электроника", "одежда", "обувь"}
 	products := make([]models.ProductAPI, 0, numberOfProducts+1)
 

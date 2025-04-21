@@ -85,11 +85,11 @@ type PickupPointAPI struct {
 }
 
 type User struct {
-	Id           int    `json:"id"`
-	Email        string `json:"email"`
-	Password     string `json:"password"`
-	PasswordHash string `json:"passwordHash"`
-	Role         string `json:"role"`
+	Id           int     `json:"id"`
+	Email        string  `json:"email"`
+	Password     *string `json:"password"`
+	PasswordHash *string `json:"passwordHash,omitempty"`
+	Role         string  `json:"role"`
 }
 
 type Session struct {
