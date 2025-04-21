@@ -37,18 +37,14 @@ func (h *authHandler) DummyLogin(w http.ResponseWriter, r *http.Request) {
 		Role: reqData.Role,
 	}
 
-	refreshToken, err := h.authService.CreateRefreshToken(r.Context(), mockUser)
-
+	tokens, err := h.authService.DummyLogin(r.Context(), mockUser)
 	if err != nil {
-		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
-		return
+		errorsHandl.SendJsonError(w, "bad request", http.StatusBadRequest)
 	}
-
-	accessToken, err := h.authService.CreateAccessToken(r.Context(), mockUser)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "refreshToken",
-		Value:    refreshToken,
+		Value:    tokens.RefreshToken,
 		HttpOnly: true,
 		Expires:  time.Now().Add(30 * 24 * time.Hour),
 		Path:     "/",
@@ -56,16 +52,13 @@ func (h *authHandler) DummyLogin(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "accessToken",
-		Value:    accessToken,
+		Value:    tokens.AccessToken,
 		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
-		Expires:  time.Now().Add(15 * time.Minute),
-		// TODO:(строка выше) продумать логику обработки токентов. Когда accessToken истекает,
-		// программа не использует refresh токен для создания нового. Просто увеличить время жизни куки мне не нравится
-		Path: "/",
+		Secure:   false, // TODO(changed for tests)
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Now().Add(30 * 24 * time.Hour),
+		Path:     "/",
 	})
-
 }
 
 func (h *authHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -192,7 +185,6 @@ func (h *authHandler) IsAvaliableRoleMiddleware(next http.HandlerFunc, avaliable
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		accessTokenCookie, err := r.Cookie("accessToken")
 		if err != nil {
-			fmt.Println("need to login")
 			http.Error(w, "unauthorized", http.StatusForbidden)
 			return
 		}

@@ -27,6 +27,7 @@ func (h *Handler) InitRouter() *mux.Router {
 	pupHandler := pickupPointHandler.NewPickupPointHandler(h.Services.PickupPoint)
 
 	modOnly := []string{"moderator"}
+	modAndEmpOnly := []string{"moderator", "employee"}
 	router.Handle("/", authHandler.IsAvaliableRoleMiddleware(authHandler.IsSignedInMiddleware(receptionHandler.IsWorking), modOnly))
 	// router.Handle()
 
@@ -35,8 +36,8 @@ func (h *Handler) InitRouter() *mux.Router {
 	router.HandleFunc("/login", authHandler.Login).Methods("POST")
 
 	router.HandleFunc("/pvz", authHandler.IsAvaliableRoleMiddleware(authHandler.IsSignedInMiddleware(pupHandler.Create), modOnly)).Methods("POST")
+	router.HandleFunc("/pvz", authHandler.IsAvaliableRoleMiddleware(authHandler.IsSignedInMiddleware(pupHandler.GetReceptionsInfo), modAndEmpOnly)).Methods("GET")
 
-	modAndEmpOnly := []string{"moderator", "employee"}
 	router.Handle("/receptions", authHandler.IsAvaliableRoleMiddleware(authHandler.IsSignedInMiddleware(receptionHandler.CreateReception), modAndEmpOnly)).Methods("POST")
 	router.Handle("/products", authHandler.IsAvaliableRoleMiddleware(authHandler.IsSignedInMiddleware(receptionHandler.AddProduct), modAndEmpOnly)).Methods("POST")
 	router.HandleFunc("/pvz/{pvzId}/delete_last_product", authHandler.IsAvaliableRoleMiddleware(authHandler.IsSignedInMiddleware(receptionHandler.DeleteLastProduct), modOnly)).Methods("POST")

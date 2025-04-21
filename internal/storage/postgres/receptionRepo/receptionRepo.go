@@ -2,19 +2,19 @@ package receptionRepo
 
 import (
 	"context"
-	"fmt"
 	"orderPickupPoint/internal/models"
+	"orderPickupPoint/internal/storage/postgres"
+
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ReceptionRepo struct {
-	pool *pgxpool.Pool
+	pool postgres.DBPool
 }
 
-func NewReceptionRepo(pool *pgxpool.Pool) *ReceptionRepo {
+func NewReceptionRepo(pool postgres.DBPool) *ReceptionRepo {
 	return &ReceptionRepo{
 		pool: pool,
 	}
@@ -164,7 +164,5 @@ func (r *ReceptionRepo) CloseReception(ctx context.Context, pvzId uuid.UUID) err
 				set status_id = 2
 				where pvz_id = $1 and status_id = 1`
 	_, err := r.pool.Exec(ctx, query, pvzId)
-	fmt.Println(err)
-
 	return err
 }

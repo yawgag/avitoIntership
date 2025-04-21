@@ -3,18 +3,19 @@ package storage
 import (
 	"context"
 	"orderPickupPoint/internal/models"
+	"orderPickupPoint/internal/storage/postgres"
 	"orderPickupPoint/internal/storage/postgres/authRepo"
 	"orderPickupPoint/internal/storage/postgres/pickupPointRepo"
 	"orderPickupPoint/internal/storage/postgres/receptionRepo"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type PickupPoint interface {
 	Create(ctx context.Context, pickupPoint *models.PickupPoint) (*models.PickupPoint, error)
 	GetCityIdByName(ctx context.Context, name string) (int, error)
+	GetFilteredInfo(ctx context.Context, filter *models.PvzFilter) ([]models.PvzFilteredInfo, error)
 }
 
 type Reception interface {
@@ -35,9 +36,6 @@ type Auth interface {
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 
 	GetRoleIdByName(ctx context.Context, role string) (int, error)
-
-	// LOGIN - GetSession(ctx context.Context, sessionId string) (*models.Session, error)
-	// LOGOUT - DeleteSession(ctx context.Context, sessionId string) error
 }
 
 type Repositories struct {
@@ -46,7 +44,7 @@ type Repositories struct {
 	Auth        Auth
 }
 
-func NewRepositories(db *pgxpool.Pool) *Repositories {
+func NewRepositories(db postgres.DBPool) *Repositories {
 	return &Repositories{
 		PickupPoint: pickupPointRepo.NewPickupPointRepo(db),
 		Reception:   receptionRepo.NewReceptionRepo(db),

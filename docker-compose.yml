@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:13
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pswrd
+      POSTGRES_DB: avitointer
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+
+  app:
+    build:
+      context: .  
+      dockerfile: Dockerfile
+    container_name: go-app
+    environment:
+      SERVER_ADDRESS: ":8080"
+      DB_URL: "postgres://postgres:pswrd@db:5432/avitointer?sslmode=disable"
+      SECRET_WORD: "this_is_my_secret_word"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: go-app-test
+    environment:
+      SERVER_ADDRESS: "http://app:8080"
+    command: ["go", "test", "-v", "./test"]
+    depends_on:
+      - db
+      - app
+    networks:
+      - app-network
+
+volumes:
+  postgres-data:
+
+networks:
+  app-network:
+    driver: bridge

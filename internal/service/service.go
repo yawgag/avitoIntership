@@ -14,6 +14,7 @@ import (
 
 type PickupPoint interface {
 	Create(ctx context.Context, pickupPoint *models.PickupPointAPI) (*models.PickupPointAPI, error)
+	GetInfo(ctx context.Context, filter *models.PvzFilter) ([]models.PvzInfo, error)
 }
 
 type Reception interface {
@@ -24,11 +25,9 @@ type Reception interface {
 }
 
 type Auth interface {
-	CreateAccessToken(ctx context.Context, user *models.User) (string, error)
-	CreateRefreshToken(ctx context.Context, user *models.User) (string, error)
+	DummyLogin(ctx context.Context, user *models.User) (*models.AuthTokens, error)
 	Register(ctx context.Context, user *models.User) error
 	Login(ctx context.Context, user *models.User) (*models.AuthTokens, error)
-
 	AvaliableForUser(tokens *models.AuthTokens, avaliableRoles []string) (bool, error)
 	HandleTokens(ctx context.Context, tokens *models.AuthTokens) (*models.AuthTokens, error)
 }

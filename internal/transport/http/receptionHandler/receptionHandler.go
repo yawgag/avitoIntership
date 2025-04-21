@@ -82,11 +82,13 @@ func (h *ReceptionHandler) DeleteLastProduct(w http.ResponseWriter, r *http.Requ
 	pvzId, err := uuid.Parse(vars["pvzId"])
 	if err != nil {
 		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
+		return
 	}
 
 	err = h.receptionService.DeleteLastProductInReception(r.Context(), pvzId)
 	if err != nil {
 		errorsHandl.SendJsonError(w, "Unauthorized", http.StatusUnauthorized)
+		return
 	}
 }
 
@@ -96,10 +98,12 @@ func (h *ReceptionHandler) CloseReception(w http.ResponseWriter, r *http.Request
 	pvzId, err := uuid.Parse(vars["pvzId"])
 	if err != nil {
 		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
+		return
 	}
 
 	err = h.receptionService.CloseReception(r.Context(), pvzId)
 	if err != nil {
 		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
+		return
 	}
 }

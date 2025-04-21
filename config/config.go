@@ -1,31 +1,21 @@
 package config
 
 import (
-	"encoding/json"
-	"io"
 	"os"
 )
 
 type Config struct {
-	ServerAddress string `json:"ServerAddress"`
-	DbURL         string `json:"DbURL"`
-	SecretWord    string `json:"SecretWord"`
+	ServerAddress string
+	DbURL         string
+	SecretWord    string
 }
 
 func LoadConfig() (*Config, error) {
-	configFile, err := os.Open("../config/config.json")
-
-	if err != nil {
-		return nil, err
-	}
-	defer configFile.Close()
-
-	var config Config
-	byteValue, _ := io.ReadAll(configFile)
-	err = json.Unmarshal(byteValue, &config)
-	if err != nil {
-		return nil, err
+	config := &Config{
+		ServerAddress: os.Getenv("SERVER_ADDRESS"),
+		DbURL:         os.Getenv("DB_URL"),
+		SecretWord:    os.Getenv("SECRET_WORD"),
 	}
 
-	return &config, nil
+	return config, nil
 }

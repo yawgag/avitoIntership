@@ -16,24 +16,36 @@ import (
 )
 
 type AuthService struct {
-	authRepo storage.Auth
-	cfg      *config.Config
+	authRepo      storage.Auth
+	cfg           *config.Config
+	tokensHandler AuthTokenHandler
+}
+
+type AuthTokenHandler interface {
+	CreateAccessToken(ctx context.Context, user *models.User) (string, error)
+	CreateRefreshToken(ctx context.Context, user *models.User) (string, error)
+	ParseJwt(token string) (*jwt.MapClaims, error)
+}
+type TokenHandlerImpl struct {
+	secretWord string
+	authRepo   storage.Auth
 }
 
 func NewAuthService(authRepo storage.Auth, cfg *config.Config) *AuthService {
+	handler := &TokenHandlerImpl{secretWord: cfg.SecretWord, authRepo: authRepo}
 	return &AuthService{
-		authRepo: authRepo,
-		cfg:      cfg,
+		authRepo:      authRepo,
+		cfg:           cfg,
+		tokensHandler: handler,
 	}
 }
 
 // check
-func (s *AuthService) CreateRefreshToken(ctx context.Context, user *models.User) (string, error) {
+func (s *TokenHandlerImpl) CreateRefreshToken(ctx context.Context, user *models.User) (string, error) {
 	sessionId := uuid.New().String()
 	refreshTokenExpireTime, err := s.authRepo.CreateSession(ctx, user, sessionId)
 	refreshTokenExpireTime = time.Now().Add(30 * 24 * time.Hour)
 	if err != nil {
-		fmt.Println(err)
 		return "", err
 	}
 
@@ -42,9 +54,8 @@ func (s *AuthService) CreateRefreshToken(ctx context.Context, user *models.User)
 		"expireTime": refreshTokenExpireTime,
 	})
 
-	signedRefreshToken, err := refreshToken.SignedString([]byte(s.cfg.SecretWord))
+	signedRefreshToken, err := refreshToken.SignedString([]byte(s.secretWord))
 	if err != nil {
-		fmt.Println(err)
 		return "", err
 	}
 
@@ -52,20 +63,36 @@ func (s *AuthService) CreateRefreshToken(ctx context.Context, user *models.User)
 }
 
 // check
-func (s *AuthService) CreateAccessToken(ctx context.Context, user *models.User) (string, error) {
+func (s *TokenHandlerImpl) CreateAccessToken(ctx context.Context, user *models.User) (string, error) {
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userId":     user.Id,
 		"userRole":   user.Role,
 		"expireTime": time.Now().Add(15 * time.Minute),
 	})
 
-	signedAccessToken, err := accessToken.SignedString([]byte(s.cfg.SecretWord))
+	signedAccessToken, err := accessToken.SignedString([]byte(s.secretWord))
 	if err != nil {
-		fmt.Println(err)
 		return "", err
 	}
 
 	return signedAccessToken, nil
+}
+
+func (s *AuthService) DummyLogin(ctx context.Context, user *models.User) (*models.AuthTokens, error) {
+	refreshToken, err := s.tokensHandler.CreateRefreshToken(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	accessToken, err := s.tokensHandler.CreateAccessToken(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.AuthTokens{
+		RefreshToken: refreshToken,
+		AccessToken:  accessToken,
+	}, nil
 }
 
 func (s *AuthService) Register(ctx context.Context, user *models.User) error {
@@ -79,7 +106,6 @@ func (s *AuthService) Register(ctx context.Context, user *models.User) error {
 	return err
 }
 
-// write functions below
 func (s *AuthService) Login(ctx context.Context, user *models.User) (*models.AuthTokens, error) {
 	userFromDb, err := s.authRepo.GetUserByEmail(ctx, user.Email)
 	if err != nil {
@@ -91,12 +117,12 @@ func (s *AuthService) Login(ctx context.Context, user *models.User) (*models.Aut
 		return nil, err
 	}
 
-	refreshToken, err := s.CreateRefreshToken(ctx, userFromDb)
+	refreshToken, err := s.tokensHandler.CreateRefreshToken(ctx, userFromDb)
 	if err != nil {
 		return nil, err
 	}
 
-	accessToken, err := s.CreateAccessToken(ctx, userFromDb)
+	accessToken, err := s.tokensHandler.CreateAccessToken(ctx, userFromDb)
 	if err != nil {
 		return nil, err
 	}
@@ -110,11 +136,11 @@ func (s *AuthService) Login(ctx context.Context, user *models.User) (*models.Aut
 // verify the tokens and update them if necessary
 func (s *AuthService) HandleTokens(ctx context.Context, tokens *models.AuthTokens) (*models.AuthTokens, error) {
 	// take info from both tokens
-	accessTokenClaims, err := s.ParseJwt(tokens.AccessToken)
+	accessTokenClaims, err := s.tokensHandler.ParseJwt(tokens.AccessToken)
 	if err != nil {
 		return nil, err
 	}
-	refreshTokenClaims, err := s.ParseJwt(tokens.RefreshToken)
+	refreshTokenClaims, err := s.tokensHandler.ParseJwt(tokens.RefreshToken)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
@@ -174,9 +200,8 @@ func (s *AuthService) HandleTokens(ctx context.Context, tokens *models.AuthToken
 	return NewTokens, nil
 }
 func (s *AuthService) AvaliableForUser(tokens *models.AuthTokens, avaliableRoles []string) (bool, error) {
-	accessTokenClaims, err := s.ParseJwt(tokens.AccessToken)
+	accessTokenClaims, err := s.tokensHandler.ParseJwt(tokens.AccessToken)
 	if err != nil {
-		fmt.Println(err)
 		return false, err
 	}
 	userRole := (*accessTokenClaims)["userRole"].(string)
@@ -187,14 +212,14 @@ func (s *AuthService) AvaliableForUser(tokens *models.AuthTokens, avaliableRoles
 
 }
 
-// ??? replace this errors with something
-func (s *AuthService) ParseJwt(token string) (*jwt.MapClaims, error) {
+// TODO
+func (p *TokenHandlerImpl) ParseJwt(token string) (*jwt.MapClaims, error) {
 	jwtToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		_, ok := t.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
 			return nil, errors.New("wrong token format")
 		}
-		return []byte(s.cfg.SecretWord), nil
+		return []byte(p.secretWord), nil
 	})
 
 	if err != nil {

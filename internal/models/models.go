@@ -35,6 +35,43 @@ type Product struct {
 	ReceptionId uuid.UUID
 }
 
+type PvzFilter struct {
+	StartDate *time.Time
+	EndDate   *time.Time
+	Page      int
+	PageLimit int
+}
+
+type PvzFilteredInfo struct {
+	PvzID         uuid.UUID
+	CityName      string
+	RegDate       time.Time
+	ReceptionID   uuid.UUID
+	ReceptionTime time.Time
+	ProductID     uuid.UUID
+	AddedAt       time.Time
+	ProductType   string
+}
+
+type ProductInfo struct {
+	ID      uuid.UUID `json:"id"`
+	AddedAt time.Time `json:"addedAt"`
+	Type    string    `json:"type"`
+}
+
+type ReceptionInfo struct {
+	ID       uuid.UUID     `json:"id"`
+	DateTime time.Time     `json:"dateTime"`
+	Products []ProductInfo `json:"products"`
+}
+
+type PvzInfo struct {
+	ID         uuid.UUID       `json:"id"`
+	CityName   string          `json:"city"`
+	RegDate    time.Time       `json:"regDate"`
+	Receptions []ReceptionInfo `json:"receptions"`
+}
+
 type PickupPoint struct {
 	Id      uuid.UUID
 	RegDate time.Time

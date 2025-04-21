@@ -5,15 +5,14 @@ import (
 	"time"
 
 	"orderPickupPoint/internal/models"
-
-	"github.com/jackc/pgx/v5/pgxpool"
+	"orderPickupPoint/internal/storage/postgres"
 )
 
 type authRepo struct {
-	pool *pgxpool.Pool
+	pool postgres.DBPool
 }
 
-func NewAuthRepo(pool *pgxpool.Pool) *authRepo {
+func NewAuthRepo(pool postgres.DBPool) *authRepo {
 	return &authRepo{
 		pool: pool,
 	}
