@@ -1,8 +1,8 @@
 # Запуск
-make build -- сборка
-make up --  запуск контейнеров
-make down -- остановка контейнеров
-make test -- запуск интеграционного теста
+- make build -- сборка
+- make up --  запуск контейнеров
+- make down -- остановка контейнеров
+- make test -- запуск интеграционного теста
 ## Пример работы с curl запросами
 - `curl -X POST http://localhost:8080/dummyLogin      -H "Content-Type: application/json"  -c cookies.txt    -d '{"role":"moderator"}' -v`
 доступен ввод любой роли, но middleware работает только на требуемые.
