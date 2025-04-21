@@ -47,7 +47,7 @@ func (h *ReceptionHandler) CreateReception(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(reception); err != nil {
-		fmt.Println("err: ", err)
+		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
 	}
 
 }
@@ -72,7 +72,7 @@ func (h *ReceptionHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(product); err != nil {
-		fmt.Println("err: ", err)
+		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
 	}
 }
 

@@ -2,7 +2,6 @@ package authHandler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"orderPickupPoint/internal/models"
 	"orderPickupPoint/internal/service"
@@ -63,27 +62,26 @@ func (h *authHandler) DummyLogin(w http.ResponseWriter, r *http.Request) {
 
 func (h *authHandler) Register(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("Content-Type") != "application/json" {
-		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
+		errorsHandl.SendJsonError(w, "flag1", http.StatusBadRequest)
 		return
 	}
 
 	var reqData *models.User
 	if err := json.NewDecoder(r.Body).Decode(&reqData); err != nil {
-		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
+		errorsHandl.SendJsonError(w, "err1"+err.Error(), http.StatusBadRequest)
 		return
 	}
 	// some validation
 	if reqData.Email == "" || reqData.Password == "" || reqData.Role == "" {
-		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
+		errorsHandl.SendJsonError(w, "Bad request. Bad values", http.StatusBadRequest)
 		return
 	}
 
 	err := h.authService.Register(r.Context(), reqData)
 	if err != nil {
-		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
+		errorsHandl.SendJsonError(w, "err2"+err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println("everything good:))")
 }
 
 func (h *authHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -126,13 +124,12 @@ func (h *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	if err := json.NewEncoder(w).Encode(tokens); err != nil {
-		fmt.Println("err: ", err)
+		errorsHandl.SendJsonError(w, "bad request", http.StatusBadRequest)
 	}
 }
 
 func (h *authHandler) IsSignedInMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("is signed in middleware")
 		accessTokenCookie, err := r.Cookie("accessToken")
 		if err != nil {
 			errorsHandl.SendJsonError(w, "Unauthorized", http.StatusUnauthorized)
@@ -180,12 +177,11 @@ func (h *authHandler) IsSignedInMiddleware(next http.HandlerFunc) http.HandlerFu
 	})
 }
 
-// TODO rewrite to json errors
 func (h *authHandler) IsAvaliableRoleMiddleware(next http.HandlerFunc, avaliableRoles []string) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		accessTokenCookie, err := r.Cookie("accessToken")
 		if err != nil {
-			http.Error(w, "unauthorized", http.StatusForbidden)
+			errorsHandl.SendJsonError(w, "Unauthorized", http.StatusForbidden)
 			return
 		}
 		tokens := &models.AuthTokens{
@@ -193,18 +189,15 @@ func (h *authHandler) IsAvaliableRoleMiddleware(next http.HandlerFunc, avaliable
 		}
 
 		avaliable, err := h.authService.AvaliableForUser(tokens, avaliableRoles)
-		fmt.Println("avaliable check: ", avaliable)
 		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Forbidden", http.StatusForbidden)
+			errorsHandl.SendJsonError(w, "Unauthorized", http.StatusForbidden)
 			return
 		}
 
 		if avaliable {
-
 			next(w, r)
 		} else {
-			http.Error(w, "Forbidden", http.StatusForbidden)
+			errorsHandl.SendJsonError(w, "Unauthorized", http.StatusForbidden)
 		}
 	})
 }

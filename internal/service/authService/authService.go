@@ -3,7 +3,6 @@ package authService
 import (
 	"context"
 	"errors"
-	"fmt"
 	"orderPickupPoint/config"
 	"orderPickupPoint/internal/models"
 	"orderPickupPoint/internal/storage"
@@ -40,7 +39,6 @@ func NewAuthService(authRepo storage.Auth, cfg *config.Config) *AuthService {
 	}
 }
 
-// check
 func (s *TokenHandlerImpl) CreateRefreshToken(ctx context.Context, user *models.User) (string, error) {
 	sessionId := uuid.New().String()
 	refreshTokenExpireTime, err := s.authRepo.CreateSession(ctx, user, sessionId)
@@ -62,7 +60,6 @@ func (s *TokenHandlerImpl) CreateRefreshToken(ctx context.Context, user *models.
 	return signedRefreshToken, nil
 }
 
-// check
 func (s *TokenHandlerImpl) CreateAccessToken(ctx context.Context, user *models.User) (string, error) {
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userId":     user.Id,
@@ -142,7 +139,6 @@ func (s *AuthService) HandleTokens(ctx context.Context, tokens *models.AuthToken
 	}
 	refreshTokenClaims, err := s.tokensHandler.ParseJwt(tokens.RefreshToken)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 
@@ -212,7 +208,6 @@ func (s *AuthService) AvaliableForUser(tokens *models.AuthTokens, avaliableRoles
 
 }
 
-// TODO
 func (p *TokenHandlerImpl) ParseJwt(token string) (*jwt.MapClaims, error) {
 	jwtToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		_, ok := t.Method.(*jwt.SigningMethodHMAC)

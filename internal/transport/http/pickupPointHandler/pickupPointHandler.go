@@ -2,7 +2,6 @@ package pickupPointHandler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"orderPickupPoint/internal/models"
 	"orderPickupPoint/internal/service"
@@ -41,8 +40,7 @@ func (h *PickupPointHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(pickupPoint); err != nil {
-		fmt.Println("err: ", err)
-		//TODO: add json error
+		errorsHandl.SendJsonError(w, "Bad request", http.StatusBadRequest)
 	}
 }
 

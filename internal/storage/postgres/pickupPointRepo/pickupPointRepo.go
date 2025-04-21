@@ -66,7 +66,6 @@ func (r *PickupPointRepo) GetFilteredInfo(ctx context.Context, filter *models.Pv
 
 	if filter.EndDate != nil && filter.StartDate != nil {
 		query += "\nwhere prod.added_at between $1 and $2"
-		fmt.Println(filter.StartDate, filter.EndDate)
 		queryData = append(queryData, filter.StartDate, filter.EndDate)
 	}
 
@@ -75,7 +74,7 @@ func (r *PickupPointRepo) GetFilteredInfo(ctx context.Context, filter *models.Pv
 	offset := filter.PageLimit * (filter.Page - 1)
 
 	queryData = append(queryData, filter.PageLimit, offset)
-	fmt.Println(queryData...)
+
 	rows, err := r.pool.Query(ctx, query, queryData...)
 
 	if err != nil {

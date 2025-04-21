@@ -65,3 +65,8 @@ values ('обувь'),
 	('одежда'),
 	('электроника');
 
+insert into role(name)
+values ('moderator'),
+	('employee'),
+	('user');
+

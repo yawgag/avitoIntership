@@ -158,7 +158,6 @@ func (r *ReceptionRepo) DeleteLastProductInReception(ctx context.Context, pvzId 
 	return nil
 }
 
-// TODO: why it's looking so sad? :-(
 func (r *ReceptionRepo) CloseReception(ctx context.Context, pvzId uuid.UUID) error {
 	query := `update receptions
 				set status_id = 2

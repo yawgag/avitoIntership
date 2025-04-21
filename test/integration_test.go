@@ -53,7 +53,7 @@ func TestPvzLogic(t *testing.T) {
 
 	var createPvz_jsonResp models.PickupPointAPI
 	if err := json.NewDecoder(createPvz_resp.Body).Decode(&createPvz_jsonResp); err != nil {
-		body, _ := io.ReadAll(createPvz_resp.Body) // Читаем тело снова для отладки
+		body, _ := io.ReadAll(createPvz_resp.Body)
 		t.Fatalf("failed to decode JSON response: %v, raw body: %s", err, string(body))
 	}
 
@@ -66,7 +66,7 @@ func TestPvzLogic(t *testing.T) {
 
 	var createReception_jsonResp models.ReceptionAPI
 	if err := json.NewDecoder(createReception_resp.Body).Decode(&createReception_jsonResp); err != nil {
-		body, _ := io.ReadAll(createReception_resp.Body) // Читаем тело снова для отладки
+		body, _ := io.ReadAll(createReception_resp.Body)
 		t.Fatalf("failed to decode JSON response: %v, raw body: %s", err, string(body))
 	}
 
@@ -85,7 +85,7 @@ func TestPvzLogic(t *testing.T) {
 		var AddProduct_jsonResp models.ProductAPI
 
 		if err := json.NewDecoder(AddProduct_resp.Body).Decode(&AddProduct_jsonResp); err != nil {
-			body, _ := io.ReadAll(AddProduct_resp.Body) // Читаем тело снова для отладки
+			body, _ := io.ReadAll(AddProduct_resp.Body)
 			t.Fatalf("failed to decode JSON response: %v, raw body: %s", err, string(body))
 		}
 		products = append(products, AddProduct_jsonResp)
@@ -104,6 +104,3 @@ func TestPvzLogic(t *testing.T) {
 	defer closeReception_resp.Body.Close()
 	t.Log("close reception")
 }
-
-// go test -coverprofile=coverage.out ./...
-// go tool cover -func=coverage.out

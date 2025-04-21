@@ -3,7 +3,6 @@ package receptionRepo
 import (
 	"context"
 	"errors"
-	"fmt"
 	"orderPickupPoint/internal/models"
 	"orderPickupPoint/internal/storage/postgres"
 	"reflect"
@@ -209,7 +208,6 @@ func TestDeleteLastProductInReception(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		fmt.Println(tt.mockReturn)
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
 			mockPool := new(mockDbPool)
@@ -266,7 +264,6 @@ func TestAddProductToReception(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		fmt.Println(tt.mockReturn)
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
 			mockPool := new(mockDbPool)

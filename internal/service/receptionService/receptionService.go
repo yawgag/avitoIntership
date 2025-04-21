@@ -31,7 +31,7 @@ func (s *ReceptionService) CreateReception(ctx context.Context, pvzId uuid.UUID)
 	outReception := &models.ReceptionAPI{
 		Id:            reception.Id,
 		DateTime:      reception.DateTime,
-		PickupPointId: pvzId, // TODO: check changes
+		PickupPointId: pvzId,
 		Status:        statusName,
 	}
 	return outReception, nil
@@ -62,13 +62,11 @@ func (s *ReceptionService) AddProduct(ctx context.Context, productAPI *models.Pr
 	return productAPI, nil
 }
 
-// TODO: add validation?
 func (s *ReceptionService) DeleteLastProductInReception(ctx context.Context, pvzId uuid.UUID) error {
 	err := s.ReceptionRepo.DeleteLastProductInReception(ctx, pvzId)
 	return err
 }
 
-// TODO: i said "sad" about this function in repo, but this... much worse
 func (s *ReceptionService) CloseReception(ctx context.Context, pvzId uuid.UUID) error {
 	err := s.ReceptionRepo.CloseReception(ctx, pvzId)
 	return err

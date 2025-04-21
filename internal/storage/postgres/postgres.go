@@ -11,7 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// added for tests
 type DBPool interface {
 	Close()
 	Begin(ctx context.Context) (Tx, error)
@@ -20,7 +19,6 @@ type DBPool interface {
 	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
 }
 
-// added for tests
 type Tx interface {
 	Commit(ctx context.Context) error
 	Rollback(ctx context.Context) error
@@ -101,10 +99,4 @@ func InitDb() (DBPool, error) {
 	}
 
 	return &PgxDBPool{pool: DbConnPool}, err
-}
-
-func CloseDB(DbConnPool DBPool) {
-	if DbConnPool != nil {
-		DbConnPool.Close()
-	}
 }

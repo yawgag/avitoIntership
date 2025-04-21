@@ -2,6 +2,7 @@ package authRepo
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"orderPickupPoint/internal/models"
@@ -48,12 +49,12 @@ func (r *authRepo) AddNewUser(ctx context.Context, user *models.User) error {
 
 	roleId, err := r.GetRoleIdByName(ctx, user.Role)
 	if err != nil {
-		return err
+		return errors.New("flag1#")
 	}
 
 	_, err = r.pool.Exec(ctx, query, user.Email, user.PasswordHash, roleId)
 	if err != nil {
-		return err
+		return errors.New("flag2#")
 	}
 	return nil
 }
